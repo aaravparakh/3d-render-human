@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Model Viewer</title>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+  <script>
+    // Initialize scene, camera, and renderer
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Add lighting
+    const light = new THREE.AmbientLight(0x404040, 2); // soft white light
+    scene.add(light);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(1, 1, 1).normalize();
+    scene.add(directionalLight);
+
+    // Load the GLB model
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+      'path/to/human.glb', // Replace with the path to your .glb file
+      (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+        model.position.set(0, -1, 0);
+        model.scale.set(1, 1, 1);
+
+        // Add interaction (simple rotation on mouse move)
+        let isMouseDown = false;
+        let startX = 0;
+        document.addEventListener('mousedown', (event) => {
+          isMouseDown = true;
+          startX = event.clientX;
+        });
+        document.addEventListener('mouseup', () => (isMouseDown = false));
+        document.addEventListener('mousemove', (event) => {
+          if (isMouseDown) {
+            model.rotation.y += (event.clientX - startX) * 0.01;
+            startX = event.clientX;
+          }
+        });
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+      },
+      (error) => {
+        console.error('An error happened:', error);
+      }
+    );
+
+    // Set camera position
+    camera.position.z = 3;
+
+    // Render loop
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
